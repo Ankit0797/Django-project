@@ -1,0 +1,237 @@
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
+<head>
+<title>{% block title %}{% endblock %}</title>
+<link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
+{% if not is_popup and is_nav_sidebar_enabled %}
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/nav_sidebar.css" %}">
+  <script src="{% static 'admin/js/nav_sidebar.js' %}" defer></script>
+{% endif %}
+{% block extrastyle %}{% endblock %}
+{% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
+{% block extrahead %}{% endblock %}
+{% block responsive %}
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+    {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive_rtl.css" %}">{% endif %}
+{% endblock %}
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+<style>
+    .sticky {
+        position: sticky;
+        top: 0;
+        max-height: 100vh;
+    }
+
+    #header a:link, #header a:hover{
+        color: black;
+    }
+    
+    .toggle-nav-sidebar {
+        z-index: 20;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 23px;
+        width: 23px;
+        border: 1px solid black;
+        background-color: #00D0B7;
+        cursor: pointer;
+        font-size: 20px;
+        color: var(--link-fg);
+        padding: 0;
+    }
+
+    [dir="rtl"] .toggle-nav-sidebar {
+        border-left: 1px solid #00A793;
+        border-right: 0;
+    }
+    
+    .toggle-nav-sidebar:hover,
+    .toggle-nav-sidebar:focus {
+        background-color: #00A793;
+    }
+    
+    #nav-sidebar {
+        z-index: 15;
+        flex: 0 0 275px;
+        left: -276px;
+        margin-left: -276px;
+        border-top: 1px solid transparent;
+        border-right: 1px solid var(--hairline-color);
+        background-color: var(--body-bg);
+        overflow: auto;
+    }
+    
+    [dir="rtl"] #nav-sidebar {
+        border-left: 1px solid var(--hairline-color);
+        border-right: 0;
+        left: 0;
+        margin-left: 0;
+        right: -276px;
+        margin-right: -276px;
+    }
+    
+    .toggle-nav-sidebar::before {
+        color: black;
+        content: '\00BB';
+    }
+    
+    .main.shifted .toggle-nav-sidebar::before {
+        content: '\00AB';
+    }
+    
+    .main.shifted > #nav-sidebar {
+        left: 24px;
+        margin-left: 0;
+    }
+    
+    [dir="rtl"] .main.shifted > #nav-sidebar {
+        left: 0;
+        right: 24px;
+        margin-right: 0;
+    }
+    
+    #nav-sidebar .module th {
+        width: 100%;
+        overflow-wrap: anywhere;
+    }
+    
+    #nav-sidebar .module th,
+    #nav-sidebar .module caption {
+        padding-left: 16px;
+    }
+    
+    #nav-sidebar .module td {
+        white-space: nowrap;
+    }
+    
+    [dir="rtl"] #nav-sidebar .module th,
+    [dir="rtl"] #nav-sidebar .module caption {
+        padding-left: 8px;
+        padding-right: 16px;
+    }
+    
+    #nav-sidebar .current-app .section:link,
+    #nav-sidebar .current-app .section:visited {
+        color: var(--header-color);
+        font-weight: bold;
+    }
+    
+    #nav-sidebar .current-model {
+        background: var(--selected-row);
+    }
+    
+    .main > #nav-sidebar + .content {
+        max-width: calc(100% - 23px);
+    }
+    
+    .main.shifted > #nav-sidebar + .content {
+        max-width: calc(100% - 299px);
+    }
+    
+    @media (max-width: 767px) {
+        #nav-sidebar, #toggle-nav-sidebar {
+            display: none;
+        }
+    
+        .main > #nav-sidebar + .content,
+        .main.shifted > #nav-sidebar + .content {
+            max-width: 100%;
+        }
+    }
+    
+</style>
+</head>
+{% load i18n %}
+
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+  data-admin-utc-offset="{% now "Z" %}">
+
+<!-- Container -->
+<div id="container">
+
+    {% if not is_popup %}
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+        {% block branding %}{% endblock %}
+        </div>
+        {% block usertools %}
+        {% if has_permission %}
+        <div id="user-tools">
+            {% block welcome-msg %}
+                {% translate 'Welcome,' %}
+                <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+            {% endblock %}
+            {% block userlinks %}
+                {% comment %} {% if site_url %}
+                    <a href="{{ site_url }}">{% translate 'View site' %}</a> /
+                {% endif %} {% endcomment %}
+                {% if user.is_active and user.is_staff %}
+                    {% url 'django-admindocs-docroot' as docsroot %}
+                    {% if docsroot %}
+                        <a href="{{ docsroot }}">{% translate 'Documentation' %}</a> /
+                    {% endif %}
+                {% endif %}
+                {% comment %} <select class="form-select" aria-label="Default select example">
+                    <option selected>Open this select menu</option>
+                    <option value="1">One</option>
+                    <option value="2">Two</option>
+                    <option value="3">Three</option>
+                  </select> {% endcomment %}
+                {% if user.has_usable_password %}
+                <a href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a> /
+                {% endif %}
+                <a href="{% url 'admin:logout' %}">{% translate 'Log out' %}</a>
+            {% endblock %}
+        </div>
+        {% endif %}
+        {% endblock %}
+        {% block nav-global %}{% endblock %}
+    </div>
+    <!-- END Header -->
+    {% block breadcrumbs %}
+    <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    {% if title %} &rsaquo; {{ title }}{% endif %}
+    </div>
+    {% endblock %}
+    {% endif %}
+
+    <div class="main shifted" id="main">
+      {% if not is_popup and is_nav_sidebar_enabled %}
+        {% block nav-sidebar %}
+          {% include "admin/nav_sidebar.html" %}
+        {% endblock %}
+      {% endif %}
+      <div class="content">
+        {% block messages %}
+          {% if messages %}
+            <ul class="messagelist">{% for message in messages %}
+              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+            {% endfor %}</ul>
+          {% endif %}
+        {% endblock messages %}
+        <!-- Content -->
+        <div id="content" class="{% block coltype %}colM{% endblock %}">
+          {% block pretitle %}{% endblock %}
+          {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+          {% block content_subtitle %}{% if subtitle %}<h2>{{ subtitle }}</h2>{% endif %}{% endblock %}
+          {% block content %}
+            {% block object-tools %}{% endblock %}
+            {{ content }}
+          {% endblock %}
+          {% block sidebar %}{% endblock %}
+          <br class="clear">
+        </div>
+        <!-- END Content -->
+        {% block footer %}<div id="footer"></div>{% endblock %}
+      </div>
+    </div>
+</div>
+<!-- END Container -->
+</body>
+</html>

@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+
+{% load static %}
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <img src = '{% static "IDBI_Intech_Logo.jpg" %}' height="60px" />
+        <strong>{{ site_header|default:_('Django administration') }}</strong>
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrastyle %}
+<style>
+div #header{
+    background-color: #00A793;
+}
+
+div.breadcrumbs a{
+    color:black;
+}
+
+div#content h1{
+    font-weight: 700;
+}
+div .breadcrumbs, .module caption, .module h2{
+    background-color: #00D0B7;
+}
+.module a{
+    color: #00A793;
+}
+.module a:hover{
+    color: black;
+}
+div#changelist-filter h2{
+    color: black;
+}
+th.field-Project_name a, th.field-Empid a,th.field-Project_Selected a{
+    color: #00A793;
+}
+th.field-Project_name a:hover{
+    color: #00D0B7;
+}
+
+</style>
+{% endblock  %}
+
+{% block nav-global %}{% endblock %}
